@@ -9,61 +9,96 @@ import java.util.Map;
  * @author oohira
  */
 public class Company {
-    private String id;
+
+	private String type;
+	private String id;
+	private Date createdAt;
+	private Date remoteCreatedAt;
+	private Date updatedAt;
+    private String companyId;
     private String name;
-    private Date createdAt;
-    private String plan;
+    private Map<String, Object> customAttributes;
+    private Long sessionCount;
     private Double monthlySpend;
-    private Map<String, Object> customData;
+    private Double userCount;
+    private String planId;
 
     public Company() {
     }
-
+    
+    public String getType() {
+    	return type;
+    }
+    
     public String getId() {
-        return this.id;
+    	return id;
     }
-
-    public void setId(final String id) {
-        this.id = id;
+    
+    public Date getCreatedAt() {
+    	return createdAt;
     }
+    
+    public Date getRemoteCreatedAt() {
+    	return this.remoteCreatedAt;
+    }
+    
+    public void setRemoteCreatedAt(final Date remoteCreatedAt) {
+		this.remoteCreatedAt = remoteCreatedAt;
+	}
 
-    public String getName() {
-        return this.name;
+	public Date getUpdatedAt() {
+    	return updatedAt;
+    }
+    
+    public String getCompanyId() {
+    	return this.companyId;
+    }
+    
+    public void setCompanyId(final String companyId) {
+		this.companyId = companyId;
+	}
+
+	public String getName() {
+    	return this.name;
     }
 
     public void setName(final String name) {
         this.name = name;
     }
 
-    public Date getCreatedAt() {
-        return this.createdAt;
-    }
+    public Map<String, Object> getCustomAttributes() {
+	    return this.customAttributes;
+	}
 
-    public void setCreatedAt(final Date createdAt) {
-        this.createdAt = createdAt;
-    }
+	public void setCustomAttributes(final Map<String, Object> customAttributes) {
+	    this.customAttributes = customAttributes;
+	}
 
-    public String getPlan() {
-        return this.plan;
-    }
+	public Long getSessionCount() {
+		return sessionCount;
+	}
 
-    public void setPlan(final String plan) {
-        this.plan = plan;
-    }
+	public void setSessionCount(Long sessionCount) {
+		this.sessionCount = sessionCount;
+	}
 
-    public Double getMonthlySpend() {
-        return this.monthlySpend;
+	public Double getMonthlySpend() {
+    	return this.monthlySpend;
     }
 
     public void setMonthlySpend(final Double monthlySpend) {
-        this.monthlySpend = monthlySpend;
+	    this.monthlySpend = monthlySpend;
+	}
+    
+    public Double getUserCount() {
+    	return userCount;
     }
+    
+	public String getPlanId() {
+	    return this.planId;
+	}
 
-    public Map<String, Object> getCustomData() {
-        return this.customData;
-    }
-
-    public void setCustomData(final Map<String, Object> customData) {
-        this.customData = customData;
+	public void setPlanId(final String planId) {
+        this.planId = planId;
     }
 }

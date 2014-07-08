@@ -6,17 +6,18 @@ package com.github.oohira.intercom.model;
  * @author oohira
  */
 public class Tag {
+	
+	private String type;
     private String id;
     private String name;
-    private Boolean segment;
-    private Integer taggedUserCount;
-    private String[] userIds;
-    private String[] emails;
-    private String tagOrUntag;
 
     public Tag() {
     }
 
+    private String getType() {
+    	return type;
+    }
+    
     public String getId() {
         return this.id;
     }
@@ -29,23 +30,4 @@ public class Tag {
         this.name = name;
     }
 
-    public Boolean isSegment() {
-        return this.segment;
-    }
-
-    public Integer getTaggedUserCount() {
-        return this.taggedUserCount;
-    }
-
-    public void setUserIds(final String[] userIds) {
-        this.userIds = userIds;
-    }
-
-    public void setEmails(final String[] emails) {
-        this.emails = emails;
-    }
-
-    public void setTagOrUntag(final String tagOrUntag) {
-        this.tagOrUntag = tagOrUntag;
-    }
 }

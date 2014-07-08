@@ -1,27 +1,5 @@
 package com.github.oohira.intercom;
 
-import com.github.oohira.intercom.model.Company;
-import com.github.oohira.intercom.model.ErrorResponse;
-import com.github.oohira.intercom.model.Event;
-import com.github.oohira.intercom.model.Impression;
-import com.github.oohira.intercom.model.Note;
-import com.github.oohira.intercom.model.Tag;
-import com.github.oohira.intercom.model.User;
-import com.github.oohira.intercom.model.UserCollection;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-
-import org.apache.commons.codec.binary.Base64;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +18,26 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.codec.binary.Base64;
+
+import com.github.oohira.intercom.model.Companies;
+import com.github.oohira.intercom.model.Company;
+import com.github.oohira.intercom.model.ErrorResponse;
+import com.github.oohira.intercom.model.Event;
+import com.github.oohira.intercom.model.User;
+import com.github.oohira.intercom.model.UserCollection;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+
 /**
  * Class wrapping Intercom APIs.
  *
@@ -48,13 +46,13 @@ import java.util.logging.Logger;
 public class Intercom {
     private static final String API_ENDPOINT_URL = "https://api.intercom.io";
     private static final String API_V1_ENDPOINT_URL = API_ENDPOINT_URL + "/v1";
-    private static final String USERS_API_URL = API_V1_ENDPOINT_URL + "/users";
     private static final String NOTES_API_URL = API_V1_ENDPOINT_URL + "/users/notes";
     private static final String IMPRESSIONS_API_URL = API_V1_ENDPOINT_URL + "/users/impressions";
     private static final String TAGGING_API_URL = API_V1_ENDPOINT_URL + "/tags";
-    private static final String COMPANIES_API_URL = API_V1_ENDPOINT_URL + "/companies";
     // NOTE: Events API has no 'v1' path segment.
     private static final String EVENTS_API_URL = API_ENDPOINT_URL + "/events";
+    private static final String USERS_API_URL = API_ENDPOINT_URL + "/users";
+    private static final String COMPANIES_API_URL = API_ENDPOINT_URL + "/companies";
 
     private static final String DEBUG_KEY = "intercom.debug";
     private static final Logger LOGGER = Logger.getLogger(Intercom.class.getName());
@@ -103,23 +101,11 @@ public class Intercom {
                 return new JsonPrimitive(src.getTime() / 1000);
             }
         });
-        builder.registerTypeAdapter(Company.class, new JsonSerializer<Company>() {
-            @Override
-            public JsonElement serialize(Company company, Type typeOfSrc, JsonSerializationContext context) {
-                JsonObject result = new JsonObject();
-                result.add("id", context.serialize(company.getId()));
-                result.add("name", context.serialize(company.getName()));
-                result.add("created_at", context.serialize(company.getCreatedAt()));
-                result.add("plan", context.serialize(company.getPlan()));
-                result.add("monthly_spend", context.serialize(company.getMonthlySpend()));
-                Map<String, Object> customData = company.getCustomData();
-                if (customData != null) {
-                    for (String key : customData.keySet()) {
-                        result.add(key, context.serialize(customData.get(key)));
-                    }
-                }
-                return result;
-            }
+        builder.registerTypeAdapter(Companies.class, new JsonSerializer<Companies>() {
+        	@Override
+        	public JsonElement serialize(Companies src, Type typeOfSrc, JsonSerializationContext context) {
+        		return context.serialize(src.getCompanies());
+        	}
         });
         return builder.create();
     }
@@ -297,7 +283,7 @@ public class Intercom {
     }
 
     /**
-     * Updates an already existing user.
+     * Updates an already existing user or create new user.
      *
      * @param user a user object.
      * @return the updated user object.
@@ -307,7 +293,7 @@ public class Intercom {
      */
     public User updateUser(final User user) throws IntercomException {
         String json = serialize(user);
-        String response = httpPut(USERS_API_URL, json);
+        String response = httpPost(USERS_API_URL, json);
 
         return deserialize(response, User.class);
     }
@@ -375,102 +361,33 @@ public class Intercom {
     }
 
     /**
-     * Retrieves a company.
+     * Retrieves a company by its company_id field.
      *
-     * NOTE: This company retrieval API is not documented in official.
-     *
-     * @param companyId an unique identifier for the company.
+     * @param companyId you assigned to your company.
      * @return the retrieved company.
      * @throws IntercomException when some error occurred.
      */
-    public Company getCompanyById(final String companyId) throws IntercomException {
+    public Company getCompanyByCompanyId(final String companyId) throws IntercomException {
         Map<String, String> params = new LinkedHashMap<String, String>();
-        params.put("id", companyId);
+        params.put("company_id", companyId);
         String response = httpGet(COMPANIES_API_URL, params);
 
         return deserialize(response, Company.class);
     }
-
+    
     /**
-     * Retrieves a tag.
-     *
-     * @param name the name of the tag.
-     * @return the tag object.
-     * @throws IntercomException when some error occurred.
-     * @see <a href="https://api.intercom.io/docs#getting_a_tag">
-     *     Intercom API Documentation: Getting a Tag</a>
+     * Update company, or create new company if no existing company with id or
+     * company_id is found.
+     * 
+     * @param company
+     * @return company
+     * @throws IntercomException when some error occurred
      */
-    public Tag getTag(final String name) throws IntercomException {
-        Map<String, String> params = new LinkedHashMap<String, String>();
-        params.put("name", name);
-        String response = httpGet(TAGGING_API_URL, params);
+    public Company updateCompany(final Company company) {
+        String json = serialize(company);
+        String response = httpPost(COMPANIES_API_URL, json);
 
-        return deserialize(response, Tag.class);
-    }
-
-    /**
-     * Creates a new tag, optionally, tag/untag users.
-     *
-     * @param tag a new tag object.
-     * @return the created tag object.
-     * @throws IntercomException when some error occurred.
-     * @see <a href="https://api.intercom.io/docs#creating_a_tag">
-     *     Intercom API Documentation: Creating a Tag</a>
-     */
-    public Tag createTag(final Tag tag) throws IntercomException {
-        String json = serialize(tag);
-        String response = httpPost(TAGGING_API_URL, json);
-
-        return deserialize(response, Tag.class);
-    }
-
-    /**
-     * Updates an already existing tag.
-     *
-     * @param tag a tag object.
-     * @return the updated tag object.
-     * @throws IntercomException when some error occurred.
-     * @see <a href="https://api.intercom.io/docs#updating_a_tag">
-     *     Intercom API Documentation: Updating a Tag</a>
-     */
-    public Tag updateTag(final Tag tag) throws IntercomException {
-        String json = serialize(tag);
-        String response = httpPut(TAGGING_API_URL, json);
-
-        return deserialize(response, Tag.class);
-    }
-
-    /**
-     * Creates a new note.
-     *
-     * @param note a new note object.
-     * @return the created note object.
-     * @throws IntercomException when some error occurred.
-     * @see <a href="https://api.intercom.io/docs#creating_a_note">
-     *     Intercom API Documentation: Creating a Note</a>
-     */
-    public Note createNote(final Note note) throws IntercomException {
-        String json = serialize(note);
-        String response = httpPost(NOTES_API_URL, json);
-
-        return deserialize(response, Note.class);
-    }
-
-    /**
-     * Creates an impression.
-     *
-     * @param impression an impression object.
-     * @return the response object.
-     * @throws IntercomException when some error occurred.
-     * @see <a href="https://api.intercom.io/docs#creating_an_impression">
-     *     Intercom API Documentation: Creating an Impression</a>
-     */
-    public Impression createImpression(final Impression impression) throws IntercomException {
-        String json = serialize(impression);
-        String response = httpPost(IMPRESSIONS_API_URL, json);
-
-        return deserialize(response, Impression.class);
-
+        return deserialize(response, Company.class);
     }
 
     /**
@@ -527,6 +444,7 @@ public class Intercom {
             log(Level.INFO, String.format("%s %s %s", method, url, body));
             http = (HttpURLConnection) new URL(url).openConnection();
             http.setRequestMethod(method);
+            http.setRequestProperty("Accept", "application/json");
             String authorizationHeader = encodeBasicAuthenticationString();
             if (authorizationHeader != null) {
                 http.setRequestProperty("Authorization", authorizationHeader);

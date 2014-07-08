@@ -1,6 +1,8 @@
 package com.github.oohira.intercom.model;
 
 import com.github.oohira.intercom.Intercom;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Date;
@@ -28,42 +30,53 @@ public class UserTest {
         Intercom intercom = new Intercom();
         String json = "{}";
         User user = intercom.deserialize(json, User.class);
-        assertThat(user.getIntercomId(), is(nullValue()));
+        assertThat(user.getType(), is(nullValue()));
+        assertThat(user.getId(), is(nullValue()));
         assertThat(user.getUserId(), is(nullValue()));
         assertThat(user.getEmail(), is(nullValue()));
         assertThat(user.getName(), is(nullValue()));
         assertThat(user.getCreatedAt(), is(nullValue()));
-        assertThat(user.getLastImpressionAt(), is(nullValue()));
+        assertThat(user.getRemoteCreatedAt(), is(nullValue()));
+        assertThat(user.getUpdatedAt(), is(nullValue()));
+        assertThat(user.getCustomAttributes(), is(nullValue()));
+        assertThat(user.getAvatar(), is(nullValue()));
+        assertThat(user.getCompanies(), is(nullValue()));
+        assertThat(user.getSocialProfiles(), is(nullValue()));
     }
 
     @Test
     public void deserialize() {
         Intercom intercom = new Intercom();
         String json = "{" +
-                "'intercom_id'       : '52322b396823b17b1100016a'," +
+                "'id'                : '52322b396823b17b1100016a'," +
                 "'email'             : 'john.doe@example.com'," +
                 "'user_id'           : 'abc123'," +
                 "'name'              : 'John Doe'," +
                 "'created_at'        : 1270000000," +
-                "'last_impression_at': 1300000000," +
-                "'custom_data': {" +
+                "'remote_created_at' : 1260000000," +
+                "'custom_attributes': {" +
                 "    'app_name': 'Genesis'," +
                 "    'monthly_spend': 155.5," +
                 "    'team_mates': 7" +
                 "}," +
-                "'social_profiles': [" +
-                "{" +
+                "'social_profiles': {" +
+                "  'social_profiles': [{" +
                 "    'type': 'twitter'," +
                 "    'url': 'http://twitter.com/abc'," +
                 "    'username': 'abc'" +
-                "}," +
-                "{" +
+                "  }, {" +
                 "    'type': 'facebook'," +
                 "    'url': 'http://facebook.com/vanity'," +
                 "    'username': 'vanity'," +
                 "    'id': '13241141441141413'" +
-                "}" +
-                "]," +
+                "  }]" +
+                "}," +
+                "'companies':{" +
+                "  'companies':[{" +
+                "    'id': '123'," +
+                "    'name': 'Intercom'" +
+                "  }]" +
+                "}," +
                 "'location_data': {" +
                 "    'city_name'     : 'Santiago'," +
                 "    'continent_code': 'SA'," +
@@ -77,19 +90,19 @@ public class UserTest {
                 "}," +
                 "'session_count': 0," +
                 "'last_seen_ip': '127.0.0.1'," +
-                "'last_seen_user_agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11'," +
+                "'user_agent_data': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11'," +
                 "'unsubscribed_from_emails': false" +
                 "}";
         User user = intercom.deserialize(json, User.class);
-        assertThat(user.getIntercomId(), is("52322b396823b17b1100016a"));
+        assertThat(user.getId(), is("52322b396823b17b1100016a"));
         assertThat(user.getUserId(), is("abc123"));
         assertThat(user.getEmail(), is("john.doe@example.com"));
         assertThat(user.getName(), is("John Doe"));
         assertThat(user.getCreatedAt(), is(new Date(1270000000L * 1000)));
-        assertThat(user.getLastImpressionAt(), is(new Date(1300000000L * 1000)));
-        assertThat((String) user.getCustomData().get("app_name"), is("Genesis"));
-        assertThat((Double) user.getCustomData().get("monthly_spend"), is(155.5));
-        assertThat((Double) user.getCustomData().get("team_mates"), is(7.0));
+        assertThat(user.getRemoteCreatedAt(), is(new Date(1260000000L * 1000)));
+        assertThat((String) user.getCustomAttributes().get("app_name"), is("Genesis"));
+        assertThat((Double) user.getCustomAttributes().get("monthly_spend"), is(155.5));
+        assertThat((Double) user.getCustomAttributes().get("team_mates"), is(7.0));
 
         SocialProfile[] profiles = user.getSocialProfiles();
         assertThat(profiles.length, is(2));
@@ -102,6 +115,11 @@ public class UserTest {
         assertThat(profiles[1].getUsername(), is("vanity"));
         assertThat(profiles[1].getId(), is("13241141441141413"));
 
+        Company[] companies = user.getCompanies();
+        assertThat(companies.length, is(1));
+        assertThat(companies[0].getId(), is("123"));
+        assertThat(companies[0].getName(), is("Intercom"));
+        
         LocationData loc = user.getLocationData();
         assertThat(loc.getCityName(), is("Santiago"));
         assertThat(loc.getContinentCode(), is("SA"));
@@ -115,7 +133,7 @@ public class UserTest {
 
         assertThat(user.getSessionCount(), is(0L));
         assertThat(user.getLastSeenIp(), is("127.0.0.1"));
-        assertThat(user.getLastSeenUserAgent(), is("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11"));
+        assertThat(user.getUserAgentData(), is("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11"));
         assertThat(user.isUnsubscribedFromEmails(), is(false));
     }
 
@@ -142,45 +160,42 @@ public class UserTest {
         user.setUserId("abc123");
         user.setEmail("john.doe@example.com");
         user.setName("John Doe");
-        user.setCreatedAt(new Date(1270000000L * 1000));
+        user.setRemoteCreatedAt(new Date(1260000000L * 1000));
         Map<String, Object> customData = new LinkedHashMap<String, Object>();
         customData.put("app_name", "Genesis");
         customData.put("monthly_spend", 155.5);
         customData.put("team_mates", 7);
-        user.setCustomData(customData);
+        user.setCustomAttributes(customData);
         user.setLastSeenIp("1.2.3.4");
-        user.setLastSeenUserAgent("ie6");
-        user.setLastImpressionAt(new Date(1300000000L * 1000));
         Company company = new Company();
-        company.setId("6");
+        company.setCompanyId("6");
         company.setName("Intercom");
         Map<String, Object> customParams = new LinkedHashMap<String, Object>();
         customParams.put("last_plan_changed_at", new Date(1270000000L * 1000));
         customParams.put("email", "jane.doe@example.com");
         customParams.put("members", 2);
-        company.setCustomData(customParams);
+        company.setCustomAttributes(customParams);
         user.setCompanies(new Company[]{company});
 
         String json = intercom.serialize(user);
         assertThat(json, is("{" +
+        		"\"remote_created_at\":1260000000," +
+        		"\"user_id\":\"abc123\"," +
                 "\"email\":\"john.doe@example.com\"," +
-                "\"user_id\":\"abc123\"," +
                 "\"name\":\"John Doe\"," +
-                "\"created_at\":1270000000," +
-                "\"last_impression_at\":1300000000," +
-                "\"custom_data\":{" +
+                "\"custom_attributes\":{" +
                 "\"app_name\":\"Genesis\"," +
                 "\"monthly_spend\":155.5," +
                 "\"team_mates\":7" +
                 "}," +
                 "\"last_seen_ip\":\"1.2.3.4\"," +
-                "\"last_seen_user_agent\":\"ie6\"," +
                 "\"companies\":[{" +
-                "\"id\":\"6\"," +
+                "\"company_id\":\"6\"," +
                 "\"name\":\"Intercom\"," +
+                "\"custom_attributes\":{" +
                 "\"last_plan_changed_at\":1270000000," +
                 "\"email\":\"jane.doe@example.com\"," +
                 "\"members\":2" +
-                "}]}"));
+                "}}]}"));
     }
 }

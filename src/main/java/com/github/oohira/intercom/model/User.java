@@ -9,44 +9,69 @@ import java.util.Map;
  * @author oohira
  */
 public class User {
-    private String intercomId;
-    private String email;
-    private String userId;
-    private String name;
-    private Date createdAt;
-    private Date lastImpressionAt;
-    private Map<String, Object> customData;
-    private SocialProfile[] socialProfiles;
-    private LocationData locationData;
-    private Long sessionCount;
-    private String lastSeenIp;
-    private String lastSeenUserAgent;
-    private String avatarUrl;
-    private Boolean unsubscribedFromEmails;
-    private String[] companyIds;
-    private Company[] companies;
-
+	
+	private String type;
+	private String id;
+	private Date createdAt;
+	private Date remoteCreatedAt;
+	private Date updatedAt;
+	private String userId;
+	private String email;
+	private String name;
+	private Map<String, Object> customAttributes;
+	private Date lastRequestAt;
+	private Long sessionCount;
+	private Avatar avatar;
+	private Boolean unsubscribedFromEmails;
+	private LocationData locationData;
+	private String userAgentData;
+	private String lastSeenIp;
+	private Companies companies;
+	private SocialProfiles socialProfiles;
+	private Segments segments;
+	private Tags tags;
+	
     public User() {
     }
 
-    public String getIntercomId() {
-        return this.intercomId;
+    public String getType() {
+    	return type;
+    }
+    
+    public String getId() {
+    	return id;
+    }
+    
+    public Date getCreatedAt() {
+    	return createdAt;
+    }
+    
+    public Date getRemoteCreatedAt() {
+    	return this.remoteCreatedAt;
+    }
+    
+    public void setRemoteCreatedAt(final Date remoteCreatedAt) {
+		this.remoteCreatedAt = remoteCreatedAt;
+	}
+
+	public Date getUpdatedAt() {
+    	return updatedAt;
     }
 
+	public String getUserId() {
+		return this.userId;
+	}
+	
+	public void setUserId(final String userId) {
+		this.userId = userId;
+	}
+	
     public String getEmail() {
         return this.email;
     }
 
     public void setEmail(final String email) {
         this.email = email;
-    }
-
-    public String getUserId() {
-        return this.userId;
-    }
-
-    public void setUserId(final String userId) {
-        this.userId = userId;
     }
 
     public String getName() {
@@ -57,43 +82,47 @@ public class User {
         this.name = name;
     }
 
-    public Date getCreatedAt() {
-        return this.createdAt;
+    public Map<String, Object> getCustomAttributes() {
+        return this.customAttributes;
     }
 
-    public void setCreatedAt(final Date createdAt) {
-        this.createdAt = createdAt;
+    public void setCustomAttributes(final Map<String, Object> customAttributes) {
+        this.customAttributes = customAttributes;
     }
-
-    public Date getLastImpressionAt() {
-        return this.lastImpressionAt;
+    
+    public Date getLastRequestAt() {
+    	return lastRequestAt;
     }
-
-    public void setLastImpressionAt(final Date lastImpressionAt) {
-        this.lastImpressionAt = lastImpressionAt;
-    }
-
-    public Map<String, Object> getCustomData() {
-        return this.customData;
-    }
-
-    public void setCustomData(final Map<String, Object> customData) {
-        this.customData = customData;
-    }
-
-    public SocialProfile[] getSocialProfiles() {
-        return this.socialProfiles;
-    }
-
-    public LocationData getLocationData() {
-        return this.locationData;
+    
+    public void setLastRequestAt(Date lastRequestAt) {
+    	this.lastRequestAt = lastRequestAt;
     }
 
     public Long getSessionCount() {
-        return this.sessionCount;
-    }
+	    return this.sessionCount;
+	}
 
-    public String getLastSeenIp() {
+    public Avatar getAvatar() {
+        return this.avatar;
+    }
+    
+    public void setAvatar(Avatar avatar) {
+    	this.avatar = avatar;
+    }
+    
+	public Boolean isUnsubscribedFromEmails() {
+	    return this.unsubscribedFromEmails;
+	}
+
+	public LocationData getLocationData() {
+	    return this.locationData;
+	}
+	
+	public String getUserAgentData() {
+		return userAgentData;
+	}
+
+	public String getLastSeenIp() {
         return this.lastSeenIp;
     }
 
@@ -101,27 +130,23 @@ public class User {
         this.lastSeenIp = lastSeenIp;
     }
 
-    public String getLastSeenUserAgent() {
-        return this.lastSeenUserAgent;
+    public Company[] getCompanies() {
+    	return (this.companies != null) ? this.companies.getCompanies() : null;
     }
-
-    public void setLastSeenUserAgent(final String lastSeenUserAgent) {
-        this.lastSeenUserAgent = lastSeenUserAgent;
-    }
-
-    public String getAvatarUrl() {
-        return this.avatarUrl;
-    }
-
-    public Boolean isUnsubscribedFromEmails() {
-        return this.unsubscribedFromEmails;
-    }
-
-    public String[] getCompanyIds() {
-        return this.companyIds;
-    }
-
+    
     public void setCompanies(final Company[] companies) {
-        this.companies = companies;
+        this.companies = new Companies(companies);
     }
+
+	public SocialProfile[] getSocialProfiles() {
+	    return (this.socialProfiles != null) ? this.socialProfiles.getSocialProfiles() : null;
+	}
+	
+	public Tag[] getTags() {
+		return (this.tags != null) ? this.tags.getTags() : null;
+	}
+	
+	public Segment[] getSegments() {
+		return (this.segments != null) ? this.segments.getSegments() : null;
+	}
 }
